@@ -212,7 +212,7 @@ void setup(){
  
   Serial.begin(57600);
   
-  delay(300);  //added delay to give wireless ps2 module some time to startup, before configuring it
+  delay(1000);  //added delay to give wireless ps2 module some time to startup, before configuring it
    
   //CHANGES for v1.6 HERE!!! **************PAY ATTENTION*************
   
