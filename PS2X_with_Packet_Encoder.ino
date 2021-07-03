@@ -305,16 +305,7 @@ void loop() {
     ps2x_packet.SetAnalogValue(PSS_LY, ps2x.Analog(PSS_LY));
     
     ps2x_packet.Finalize();
-    ps2x_packet.Print();
-
-    Serial.print("RX State: ");
-    Serial.println(ps2x_packet.GetAnalogValue(PSS_RX));
-    Serial.print("RY State: ");
-    Serial.println(ps2x_packet.GetAnalogValue(PSS_RY));
-    Serial.print("LX State: ");
-    Serial.println(ps2x_packet.GetAnalogValue(PSS_LX));
-    Serial.print("LY State: ");
-    Serial.println(ps2x_packet.GetAnalogValue(PSS_LY));     
+    ps2x_packet.Print(); 
   }
   delay(50);  
 }
