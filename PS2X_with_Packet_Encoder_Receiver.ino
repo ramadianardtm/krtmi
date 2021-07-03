@@ -224,7 +224,15 @@ void loop()
     bool data_ready = false;
     if (radio.available())              //Looking for the data.
     {
-        char data[9] = {0};                 //Saving the incoming data
+        // if payload size != krtmi::PS2XPacket::kPacketSize 
+        // flush rx and wait for the next payload
+        if (radio.getDynamicPayloadSize() != krtmi::PS2XPacket::kPacketSize){
+            radio.flush_rx();
+            delay(2);
+            return;
+        }
+        
+        char data[krtmi::PS2XPacket::kPacketSize] = {0};    //Saving the incoming data
         radio.read(&data, sizeof(data));    //Reading the data
         Serial.print("Received Data: ");
         for (int i = 0; i < sizeof(data); i++){
