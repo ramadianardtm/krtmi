@@ -1,5 +1,6 @@
 #include <iostream>
 #include <stdint.h>
+#include <string.h>
 #define PSB_SELECT      0x0001
 #define PSB_L3          0x0002
 #define PSB_R3          0x0004
@@ -157,6 +158,26 @@ class PS2XPacket {
             return packet;
         }
 
+        inline bool ParsePacket(uint8_t* packet_in, size_t size){
+            if (packet_in != nullptr &&
+                size == kPacketSize &&
+                packet_in[kStartIndex] == kStartFlag &&
+                packet_in[kStopIndex] == kStopFlag
+            ){  
+                crc8::crc_t crc = crc8::crc_init();
+                crc = crc8::crc_update(crc, &packet_in[kDataStartIndex], kDataSize);
+                crc = crc8::crc_finalize(crc);
+                
+                if (packet_in[kCRCIndex] != crc){
+                    return false;
+                }
+
+                memcpy(this->packet, packet_in, kPacketSize);
+                return true;
+            }
+            return false;
+        }
+
         void Clear(){
             *button_states = 0;
         }
@@ -174,18 +195,35 @@ class PS2XPacket {
         }
 
         void Print(){
-            PDEBUGMESSAGE("PS2X Controller State: ");
+#ifdef ARDUINO
+            Serial.print("PS2X Controller State: ");
+            for (int i = 0; i < 16; i++){
+
+                bool state = (*button_states >> i) & 1U;
+                Serial.print(state, DEC);
+            }
+            Serial.println();
+            Serial.print("Analog Right X: ");
+            Serial.println(packet[kRightAnalogX], DEC);
+            Serial.print("Analog Right Y: ");
+            Serial.println(packet[kRightAnalogY], DEC);
+            Serial.print("Analog Left X: ");
+            Serial.println(packet[kLeftAnalogX], DEC);
+            Serial.print("Analog Left Y: ");
+            Serial.println(packet[kLeftAnalogY], DEC);            
+#else
+            printf("PS2X Controller State: ");
             for (int i = 0; i < 16; i++){
 
                 bool state = (*button_states >> i) & 1U;
                 PDEBUGMESSAGE("%d", state);
             }
-            PDEBUGMESSAGE("\n");
-            PDEBUGMESSAGE("Analog Right X: %d\n", packet[kRightAnalogX]);
-            PDEBUGMESSAGE("Analog Right Y: %d\n", packet[kRightAnalogY]);
-            PDEBUGMESSAGE("Analog Left X: %d\n", packet[kLeftAnalogX]);
-            PDEBUGMESSAGE("Analog Left Y: %d\n", packet[kLeftAnalogY]);
-
+            printf("\n");
+            printf("Analog Right X: %d\n", packet[kRightAnalogX]);
+            printf("Analog Right Y: %d\n", packet[kRightAnalogY]);
+            printf("Analog Left X: %d\n", packet[kLeftAnalogX]);
+            printf("Analog Left Y: %d\n", packet[kLeftAnalogY]);
+#endif
         }
 };
 
@@ -227,6 +265,15 @@ int main(){
         button = button << 1;
     }
 
-    
+    uint8_t radio_in[9] = {0x7e, 0x01, 0x08, 0x84, 0x20, 0x0c, 0xde, 0xf2, 0x7d};
+    PDEBUGMESSAGE("Parsing Incoming Data: %d\n", ps2x_packet.ParsePacket(radio_in, sizeof(radio_in)));
+    for (int i = 0 ; i < krtmi::PS2XPacket::kPacketSize; i++){
+        PDEBUGMESSAGE("%x ", ps2x_packet.GetPacket()[i]);
+    }
+    PDEBUGMESSAGE("\n");
+    ps2x_packet.Print();
+
+
+
     return 0;
 }

@@ -138,6 +138,26 @@ class PS2XPacket {
             return packet;
         }
 
+        inline bool ParsePacket(uint8_t* packet_in, size_t size){
+            if (packet_in != nullptr &&
+                size == kPacketSize &&
+                packet_in[kStartIndex] == kStartFlag &&
+                packet_in[kStopIndex] == kStopFlag
+            ){  
+                crc8::crc_t crc = crc8::crc_init();
+                crc = crc8::crc_update(crc, &packet_in[kDataStartIndex], kDataSize);
+                crc = crc8::crc_finalize(crc);
+                
+                if (packet_in[kCRCIndex] != crc){
+                    return false;
+                }
+
+                memcpy(this->packet, packet_in, kPacketSize);
+                return true;
+            }
+            return false;
+        }
+
         void Clear(){
             *button_states = 0;
         }
@@ -155,7 +175,6 @@ class PS2XPacket {
         }
 
         void Print(){
-          
 #ifdef ARDUINO
             Serial.print("PS2X Controller State: ");
             for (int i = 0; i < 16; i++){
