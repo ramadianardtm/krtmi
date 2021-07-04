@@ -227,11 +227,6 @@ void loop()
     {    
         char data[krtmi::PS2XPacket::kPacketSize] = {0};    //Saving the incoming data
         radio.read(&data, sizeof(data));    //Reading the data
-        Serial.print("Received Data: ");
-        for (int i = 0; i < sizeof(data); i++){
-            Serial.print(data[i], HEX);
-        }
-        Serial.println("");
         
         // parsing data 
         data_ready = ps2x_packet.ParsePacket(data, sizeof(data));
