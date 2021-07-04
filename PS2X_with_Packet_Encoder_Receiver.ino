@@ -204,7 +204,7 @@ class PS2XPacket {
 } // namespace krtmi
 
 // nRF24L01 configuration
-RF24 radio(9, 10); // CE, CSN
+RF24 radio(7, 8); // CE, CSN
 const byte address[6] = "00001";
 
 krtmi::PS2XPacket ps2x_packet;
@@ -224,14 +224,8 @@ void loop()
     bool data_ready = false;
     if (radio.available())              //Looking for the data.
     {
-        // if payload size != krtmi::PS2XPacket::kPacketSize 
-        // flush rx and wait for the next payload
-        if (radio.getDynamicPayloadSize() != krtmi::PS2XPacket::kPacketSize){
-            radio.flush_rx();
-            delay(2);
-            return;
-        }
-        
+        Serial.print("Receive Payload Size: ");  
+        Serial.println(radio.getDynamicPayloadSize());      
         char data[krtmi::PS2XPacket::kPacketSize] = {0};    //Saving the incoming data
         radio.read(&data, sizeof(data));    //Reading the data
         Serial.print("Received Data: ");
