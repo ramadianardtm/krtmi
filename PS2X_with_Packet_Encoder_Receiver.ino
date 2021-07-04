@@ -219,13 +219,12 @@ void setup() {
     radio.setPALevel(RF24_PA_MIN);       //You can set this as minimum or maximum depending on the distance between the transmitter and receiver.
     radio.startListening();              //This sets the module as receiver
 }
+
 void loop()
 {
     bool data_ready = false;
     if (radio.available())              //Looking for the data.
-    {
-        Serial.print("Receive Payload Size: ");  
-        Serial.println(radio.getDynamicPayloadSize());      
+    {    
         char data[krtmi::PS2XPacket::kPacketSize] = {0};    //Saving the incoming data
         radio.read(&data, sizeof(data));    //Reading the data
         Serial.print("Received Data: ");
