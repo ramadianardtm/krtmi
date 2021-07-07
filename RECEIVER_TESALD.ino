@@ -2,6 +2,7 @@
 #include <nRF24L01.h>
 #include <RF24.h>
 #include <Servo.h>
+#include <PS2X_lib.h>  //for v1.6
 
 #define enA 10  
 #define in1 5
@@ -217,9 +218,11 @@ const byte address[6] = "00001";
 int motorSpeedA = 0;
 int motorSpeedB = 0;
 
+uint8_t left_y = 123;
+uint8_t right_x = 123;
+
 krtmi::PS2XPacket ps2x_packet;
 void setup() {
-  pinMode(6, OUTPUT);
   pinMode(enA, OUTPUT);
   pinMode(enB, OUTPUT);
   pinMode(in1, OUTPUT);
@@ -240,20 +243,14 @@ void setup() {
     radio.setPALevel(RF24_PA_MIN);       //You can set this as minimum or maximum depending on the distance between the transmitter and receiver.
     radio.startListening();              //This sets the module as receiver
 }
+
 void loop()
 {
     bool data_ready = false;
     if (radio.available())              //Looking for the data.
     {
-        Serial.print("Receive Payload Size: ");  
-        Serial.println(radio.getDynamicPayloadSize());      
         char data[krtmi::PS2XPacket::kPacketSize] = {0};    //Saving the incoming data
         radio.read(&data, sizeof(data));    //Reading the data
-        Serial.print("Received Data: ");
-        for (int i = 0; i < sizeof(data); i++){
-            Serial.print(data[i], HEX);
-        }
-        Serial.println("");
         
         // parsing data 
         data_ready = ps2x_packet.ParsePacket(data, sizeof(data));
@@ -265,5 +262,48 @@ void loop()
             Serial.print("Failed parsing data.");
         }
     }
-delay(5);
+
+    /*
+        Analog Kiri - Max Atas      : Analog Left Y 0
+        Analog Kiri - Max Bawah     : Analog Left Y 255
+        Analog Kanan - Max Kiri     : Analog Right X 0
+        Analog Kanan - Max Kanan    : Analog Right X 255
+    */
+
+    left_y = ps2x_packet.GetAnalogValue(PSS_LY);
+    right_x = ps2x_packet.GetAnalogValue(PSS_RX);
+    
+    // Y-axis used for forward and backward control
+    if (left_y > 126) {
+        // Set Motor A backward
+        digitalWrite(in1, HIGH);
+        digitalWrite(in2, LOW);
+        // Set Motor B backward
+        digitalWrite(in3, HIGH);
+        digitalWrite(in4, LOW);
+        // Convert the Y-axis readings for going backward from 123 to 255 into 0 to 255 value for the PWM signal for increasing the motor speed
+        motorSpeedA = map(left_y, 123, 255, 0, 255);
+        motorSpeedB = map(left_y, 123, 255, 0, 255);
+    }
+    else if (left_y < 120) {
+        // Set Motor A forward
+        digitalWrite(in1, LOW);
+        digitalWrite(in2, HIGH);
+        // Set Motor B forward
+        digitalWrite(in3, LOW);
+        digitalWrite(in4, HIGH);
+        // Convert the Y-axis readings for going forward from 123 to 0 into 0 to 255 value for the PWM signal for increasing the motor speed
+        motorSpeedA = map(left_y, 123, 0, 0, 255);
+        motorSpeedB = map(left_y, 123, 0, 0, 255);
+    }
+    // If joystick stays in middle the motors are not moving
+    else {
+        motorSpeedA = 0;
+        motorSpeedB = 0;
+    }
+    
+    analogWrite(enA, motorSpeedA); // Send PWM signal to motor A
+    analogWrite(enB, motorSpeedB); // Send PWM signal to motor B
+
+    delay(5);
 }
