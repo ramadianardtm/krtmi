@@ -296,8 +296,8 @@ void loop()
     }
         
     Serial.print("Motor Speed A : ");
-    Serial.println(motorSpeedA);
-    Serial.print("Motor Speed B : ");
+    Serial.print(motorSpeedA);
+    Serial.print(" | Motor Speed B : ");
     Serial.println(motorSpeedB);
 
     analogWrite(enA, motorSpeedA); // Send PWM signal to motor A
