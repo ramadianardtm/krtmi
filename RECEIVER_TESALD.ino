@@ -254,13 +254,6 @@ void loop()
         
         // parsing data 
         data_ready = ps2x_packet.ParsePacket(data, sizeof(data));
-        Serial.print("Parsing Data : ");
-        Serial.println(data_ready);
-        if (data_ready){
-            ps2x_packet.Print();
-        } else {
-            Serial.print("Failed parsing data.");
-        }
     }
 
     /*
@@ -301,7 +294,12 @@ void loop()
         motorSpeedA = 0;
         motorSpeedB = 0;
     }
-    
+        
+    Serial.print("Motor Speed A : ");
+    Serial.println(motorSpeedA);
+    Serial.print("Motor Speed B : ");
+    Serial.println(motorSpeedB);
+
     analogWrite(enA, motorSpeedA); // Send PWM signal to motor A
     analogWrite(enB, motorSpeedB); // Send PWM signal to motor B
 
