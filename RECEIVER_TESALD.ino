@@ -11,8 +11,8 @@
 #define in3 2
 #define in4 4
 
-Servo myServo1;
-Servo myServo2;
+Servo servo1;
+Servo servo2;
 
 namespace krtmi {
 
@@ -218,8 +218,16 @@ const byte address[6] = "00001";
 int motorSpeedA = 0;
 int motorSpeedB = 0;
 
+int myServo1 = 90;
+int myServo2 = 90;
+
 uint8_t left_y = 123;
 uint8_t right_x = 123;
+
+bool circle_btn;
+bool square_btn;
+bool triangle_btn;
+bool cross_btn;
 
 krtmi::PS2XPacket ps2x_packet;
 void setup() {
@@ -231,8 +239,12 @@ void setup() {
   pinMode(in4, OUTPUT);
 
 //INI PIN SERVO TERGANTUNG BESOK DIPASANG DMN
-  myServo1.attach(A5);
-  myServo2.attach(A4);
+  servo1.attach(A0);
+  servo2.attach(A1);
+
+  servo1.write(myServo1);
+  servo2.write(myServo2);
+   
   
     Serial.begin(9600);
     if (!radio.begin()) {
@@ -266,13 +278,46 @@ void loop()
         Analog Kanan - Max Kiri     : Analog Right X 0
         Analog Kanan - Max Kanan    : Analog Right X 255
     */
-
     left_y = ps2x_packet.GetAnalogValue(PSS_LY);
     right_x = ps2x_packet.GetAnalogValue(PSS_RX);
+
+    circle_btn = ps2x_packet.GetButtonState(PSB_CIRCLE);
+    square_btn = ps2x_packet.GetButtonState(PSB_SQUARE);
+    triangle_btn = ps2x_packet.GetButtonState(PSB_TRIANGLE);
+    cross_btn = ps2x_packet.GetButtonState(PSB_CROSS);
     
+     //SERVO NAIK TURUN
+     if ( triangle_btn == true ){
+       if (myServo1 <=180 && myServo1 >=1){
+       myServo1 = myServo1 - 2;
+       delay(30);
+       servo1.write(myServo1);}
+     }
+     else if ( cross_btn == true ){
+        if (myServo1 >=0 && myServo1 < 180 ){
+        myServo1 = myServo1 + 2;
+        delay(30);
+        servo1.write(myServo1);}
+     }
+ 
+     //SERVO BUKA TUTUP
+     if ( circle_btn == true ){
+       if (myServo2 <=180 && myServo2 >=1){
+       myServo2 = myServo2 - 2;
+       delay(30);
+       servo2.write(myServo2);}
+     }
+     
+     else if( square_btn == true ){
+        if (myServo2 >=0 && myServo2 < 180 ){
+        myServo2 = myServo2 + 2;
+        delay(30);
+        servo2.write(myServo2);}
+     }
+  
     // Y-axis used for forward and backward control
     if (left_y > 126) {
-        // Set Motor A backward
+        // Set Motor A backward/;
         digitalWrite(in1, HIGH);
         digitalWrite(in2, LOW);
         // Set Motor B backward
